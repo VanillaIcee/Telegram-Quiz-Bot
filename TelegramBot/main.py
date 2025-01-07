@@ -2,10 +2,10 @@ import asyncio
 import logging
 from aiogram import Bot
 from TelegramBot.db import create_table
-from config import API_TOKEN
+from TelegramBot.config import API_TOKEN
 import aiosqlite
 from TelegramBot.handlers import dp
-from config import DB_NAME
+from TelegramBot.config import DB_NAME
 
 # Создаем объект бота с использованием токена API
 bot = Bot(token=API_TOKEN)

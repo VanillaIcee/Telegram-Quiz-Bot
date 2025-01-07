@@ -1,5 +1,5 @@
 import aiosqlite
-from config import DB_NAME
+from TelegramBot.config import DB_NAME
 
 # Функция для создания таблиц в базе данных
 async def create_table():
@@ -7,9 +7,9 @@ async def create_table():
         # Создаем таблицу для хранения состояния квиза
         # В этой таблице хранится индекс текущего вопроса для каждого пользователя
         await db.execute(''' 
-            CREATE TABLE IF NOT EXISTS quiz_state ( 
-                user_id INTEGER PRIMARY KEY,  # Уникальный идентификатор пользователя
-                question_index INTEGER        # Индекс текущего вопроса
+            CREATE TABLE IF NOT EXISTS quiz_state (
+                user_id INTEGER PRIMARY KEY,
+                question_index INTEGER
             )
         ''')
 
@@ -17,9 +17,9 @@ async def create_table():
         # Здесь хранятся ответы пользователя: правильные и неправильные
         await db.execute(''' 
             CREATE TABLE IF NOT EXISTS quiz_results ( 
-                user_id INTEGER,            # Идентификатор пользователя
-                question_index INTEGER,     # Индекс вопроса, на который был дан ответ
-                is_correct INTEGER          # 1, если ответ правильный; 0, если неправильный
+                user_id INTEGER,
+                question_index INTEGER,
+                is_correct INTEGER
             )
         ''')
 
@@ -32,7 +32,7 @@ async def update_quiz_index(user_id, index):
         # Если запись с таким user_id уже существует, она заменяется
         await db.execute(''' 
             INSERT OR REPLACE INTO quiz_state (user_id, question_index) 
-            VALUES (?, ?)  # Заменяем user_id и question_index значениями из параметров
+            VALUES (?, ?)
         ''', (user_id, index))
         await db.commit()
 
