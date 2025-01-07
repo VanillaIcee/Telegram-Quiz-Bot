@@ -1,14 +1,11 @@
 import asyncio
 import logging
-from aiogram import Bot 
+from aiogram import Bot
 from db import create_table
 from config import API_TOKEN
 import aiosqlite
 from handlers import dp
 from config import DB_NAME
-
-# Включаем логирование
-logging.basicConfig(level=logging.INFO)
 
 # Создаем объект бота с использованием токена API
 bot = Bot(token=API_TOKEN)
@@ -21,7 +18,7 @@ async def main():
     # Открываем асинхронное соединение с базой данных
     async with aiosqlite.connect(DB_NAME) as db:
         # Создаем таблицу в базе данных, если она еще не существует
-        await create_table(db)
+        await create_table()
     # Запускаем процесс опроса (polling) для обработки входящих сообщений
     await dp.start_polling(bot)
 
