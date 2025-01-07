@@ -10,59 +10,72 @@ dp = Dispatcher()  # Инициализация диспетчера для об
 
 async def handle_answer(callback: types.CallbackQuery, is_correct: bool):
     """Обработка ответа (правильного или неправильного)."""
+    # Убираем клавиатуру после того, как пользователь дал ответ
     await callback.bot.edit_message_reply_markup(
         chat_id=callback.from_user.id,
         message_id=callback.message.message_id,
-        reply_markup=None  # Убираем клавиатуру после ответа
+        reply_markup=None  # Удаляем текущую клавиатуру
     )
     
-    current_question_index = await get_quiz_index(callback.from_user.id)  # Получаем текущий индекс вопроса
+    # Получаем текущий индекс вопроса для пользователя
+    current_question_index = await get_quiz_index(callback.from_user.id)
     if is_correct:
-        await callback.message.answer("Верно!")  # Сообщаем о правильном ответе
+        # Сообщаем пользователю, что его ответ верный
+        await callback.message.answer("Верно!")
+        # Сохраняем результат как правильный в базу данных
         await save_user_result(callback.from_user.id, current_question_index, correct=True)
     else:
-        correct_option = quiz_data[current_question_index]['correct_option']  # Правильный вариант ответа
-        await callback.message.answer(f"Неправильно. Правильный ответ: {quiz_data[current_question_index]['options'][correct_option]}")  # Сообщаем о неправильном ответе
+        # Сообщаем пользователю, что его ответ неверный, и выводим правильный ответ
+        correct_option = quiz_data[current_question_index]['correct_option']  # Индекс правильного ответа
+        await callback.message.answer(f"Неправильно. Правильный ответ: {quiz_data[current_question_index]['options'][correct_option]}")
+        # Сохраняем результат как неправильный в базу данных
         await save_user_result(callback.from_user.id, current_question_index, correct=False)
 
-    # Переход к следующему вопросу
+    # Увеличиваем индекс текущего вопроса, чтобы перейти к следующему
     current_question_index += 1
     await update_quiz_index(callback.from_user.id, current_question_index)
 
-    # Проверка, есть ли следующие вопросы
+    # Проверяем, есть ли следующий вопрос
     if current_question_index < len(quiz_data):
-        await get_question(callback.message, callback.from_user.id)  # Переход к следующему вопросу
+        # Если вопросы остались, отправляем следующий вопрос
+        await get_question(callback.message, callback.from_user.id)
     else:
-        await finish_quiz(callback.message, callback.from_user.id)  # Завершение квиза
+        # Если вопросы закончились, завершаем викторину
+        await finish_quiz(callback.message, callback.from_user.id)
 
 from TelegramBot.db import show_user_statistics
 
 
 @dp.callback_query(F.data == "right_answer")  # Обработка правильного ответа
 async def right_answer(callback: types.CallbackQuery):
-    await handle_answer(callback, is_correct=True)
+    await handle_answer(callback, is_correct=True)  # Передаем обработку в общую функцию
 
 @dp.callback_query(F.data == "wrong_answer")  # Обработка неправильного ответа
 async def wrong_answer(callback: types.CallbackQuery):
-    await handle_answer(callback, is_correct=False)
+    await handle_answer(callback, is_correct=False)  # Передаем обработку в общую функцию
 
 async def finish_quiz(message, user_id):
     """Функция для завершения квиза."""
-    await message.answer("Это был последний вопрос. Квиз завершен!")  # Уведомление о завершении квиза
-    # Вывод статистики по пользователю
+    # Уведомляем пользователя, что викторина завершена
+    await message.answer("Это был последний вопрос. Квиз завершен!")
+    # Показываем статистику пользователя
     await show_user_statistics(user_id, message)
 
 @dp.message(F.text == "Начать игру")  # Обработка нажатия кнопки "Начать игру"
 @dp.message(Command("quiz"))  # Обработка команды /quiz
 async def cmd_quiz(message: types.Message):
-    await message.answer(f"Давайте начнем квиз!")  # Уведомление о начале квиза
-    await new_quiz(message)  # Запуск новой игры
+    # Уведомляем пользователя, что викторина начинается
+    await message.answer(f"Давайте начнем квиз!")
+    # Запускаем новый квиз, используя функцию из другого модуля
+    await new_quiz(message)
 
 @dp.message(Command("start"))  # Обработка команды /start
 async def cmd_start(message: types.Message):
-    builder = ReplyKeyboardBuilder()  # Создание кнопок для клавиатуры
-    builder.add(types.KeyboardButton(text="Начать игру"))  # Добавление кнопки "Начать игру"
-    builder.add(types.KeyboardButton(text="Показать статистику"))  # Добавление кнопки "Показать статистику"
+    # Создаем объект клавиатуры с кнопками
+    builder = ReplyKeyboardBuilder()
+    builder.add(types.KeyboardButton(text="Начать игру"))  # Кнопка "Начать игру"
+    builder.add(types.KeyboardButton(text="Показать статистику"))  # Кнопка "Показать статистику"
+    # Отправляем пользователю приветственное сообщение и клавиатуру
     await message.answer(
         "Добро пожаловать в квиз!\n\n"
         "Вы можете:\n"
@@ -71,10 +84,12 @@ async def cmd_start(message: types.Message):
         "Также доступны команды:\n"
         "- /quiz — начать новую игру\n"
         "- /stats — показать статистику.",
-        reply_markup=builder.as_markup(resize_keyboard=True)
+        reply_markup=builder.as_markup(resize_keyboard=True)  # Отображаем клавиатуру с кнопками
     )
 
 @dp.message(F.text == "Показать статистику")  # Обработка нажатия кнопки "Показать статистику"
 async def cmd_show_stats(message: types.Message):
-    user_id = message.from_user.id  # Получаем ID пользователя
-    await show_user_statistics(user_id, message)  # Вызываем функцию для отображения статистики
+    # Получаем ID пользователя
+    user_id = message.from_user.id
+    # Показываем пользователю статистику, вызвав соответствующую функцию
+    await show_user_statistics(user_id, message)
