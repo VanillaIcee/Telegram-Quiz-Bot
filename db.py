@@ -1,5 +1,5 @@
 import aiosqlite
-from TelegramBot.config import DB_NAME
+from config import DB_NAME
 
 # Функция для создания таблиц в базе данных
 async def create_table():

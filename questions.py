@@ -1,6 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram import types
-from TelegramBot.db import update_quiz_index, get_quiz_index, start_new_quiz
+from db import update_quiz_index, get_quiz_index, start_new_quiz
 
 # Данные для викторины
 quiz_data = [
