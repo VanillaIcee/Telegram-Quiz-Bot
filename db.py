@@ -43,3 +43,9 @@ async def show_user_statistics(user_id, message):
         async with db.execute('SELECT COUNT(*), SUM(is_correct) FROM quiz_results WHERE user_id = ?', (user_id,)) as cursor:
             total_questions, correct_answers = await cursor.fetchone()
     await message.answer(f"Вы ответили на {total_questions} вопросов, из которых {correct_answers} были правильными.")
+
+async def start_new_quiz(user_id):
+    async with aiosqlite.connect(DB_NAME) as db:
+        # Удаляем старые результаты для данного пользователя
+        await db.execute('DELETE FROM quiz_results WHERE user_id = ?', (user_id,))
+        await db.commit()

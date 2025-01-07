@@ -1,6 +1,7 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram import types
-from db import update_quiz_index, get_quiz_index
+from db import update_quiz_index, get_quiz_index, start_new_quiz
+
 
 
 quiz_data = [
@@ -80,3 +81,4 @@ async def new_quiz(message):
     current_question_index = 0
     await update_quiz_index(user_id, current_question_index)
     await get_question(message, user_id)
+    await start_new_quiz(user_id)
