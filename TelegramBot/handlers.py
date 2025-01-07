@@ -1,8 +1,8 @@
 from aiogram import types, Dispatcher
 from aiogram.filters.command import Command
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
-from db import get_quiz_index, update_quiz_index, save_user_result, show_user_statistics
-from questions import get_question, new_quiz, quiz_data
+from TelegramBot.db import get_quiz_index, update_quiz_index, save_user_result, show_user_statistics
+from TelegramBot.questions import get_question, new_quiz, quiz_data
 from aiogram import F
 
 
@@ -35,7 +35,7 @@ async def handle_answer(callback: types.CallbackQuery, is_correct: bool):
     else:
         await finish_quiz(callback.message, callback.from_user.id)  # Завершение квиза
 
-from db import show_user_statistics
+from TelegramBot.db import show_user_statistics
 
 
 @dp.callback_query(F.data == "right_answer")  # Обработка правильного ответа
